@@ -70,11 +70,32 @@ public class VideoServiceImpl implements VideoService {
         if (video.getVideoPath() == "")
             video.setVideoPath(null);
         videoMapper.updateByPrimaryKeySelective(video);
+
     }
 
     @Override
     public void del(Video video) {
-        videoMapper.deleteByPrimaryKey(video);
+        //设置条件
+        VideoExample example = new VideoExample();
+        example.createCriteria().andIdEqualTo(video.getId());
+        //根据id查询视频数据
+        Video videos = videoMapper.selectOneByExample(example);
+
+        //1.删除数据
+        videoMapper.deleteByExample(example);
+
+        //http://yingx2006.oss-cn-beijing.aliyuncs.com/   video/1608781629917-动画.mp4
+        //http://yingx2006.oss-cn-beijing.aliyuncs.com/   cover/1608781629917-动画.jpg
+
+        //获取视频名字并拆分
+        String videoName = videos.getVideoPath().replace("http://yingx2006.oss-cn-beijing.aliyuncs.com/", "");
+        //获取封面名字并拆分
+        String coverName = videos.getCoverPath().replace("http://yingx2006.oss-cn-beijing.aliyuncs.com/", "");
+
+        //2.删除视频
+        AliyunOSSUtil.deleteFile("yingx2006", videoName);
+        //3.删除封面
+        AliyunOSSUtil.deleteFile("yingx2006", coverName);
     }
 
     @Override
